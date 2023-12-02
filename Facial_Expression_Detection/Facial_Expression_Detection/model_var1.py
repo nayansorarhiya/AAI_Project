@@ -13,6 +13,7 @@ class myCNNModel_var1(ImageClassificationBase):
         self.conv3 = conversion_block(128, 256, pool=True)
         self.conv4 = conversion_block(256, 512, pool=True)
         self.res2 = nn.Sequential(conversion_block(512, 512), conversion_block(512, 512))
+        self.conv5 = conversion_block(512, 512, pool=True)
 
         self.classifier = nn.Sequential(nn.MaxPool2d(4),
                                         nn.Flatten(),
@@ -29,7 +30,7 @@ class myCNNModel_var1(ImageClassificationBase):
         return out
     
 def conversion_block(in_channels, out_channels, pool=False):
-    kernel_size = 7
+    kernel_size = 3
     
     layers = [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2),
               nn.BatchNorm2d(out_channels),

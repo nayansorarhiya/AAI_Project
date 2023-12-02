@@ -47,7 +47,7 @@ def predict_emotion(model, image_path, transform):
 # C:\\Users\\admin\\Downloads\\AK_08_P2\\Facial_Expression_Detection\\Facial_Expression_Detection\\newData\\Test\\temp\\ffhq_105.jpg
 
 # Example: Predict emotion for an individual image
-image_path = 'C:\\Users\\admin\\Downloads\\AK_08_P2\\Facial_Expression_Detection\\Facial_Expression_Detection\\DB\\Train\\Angry\\image0000006.jpg'
+image_path = 'S:\\concordia\\all_terms\\fall_2023\\AAI\\Phase3\\AAI_Project\\Facial_Expression_Detection\\Facial_Expression_Detection\\DB\\Train\\Angry\\image0000006.jpg'
 predicted_emotion = predict_emotion(loaded_model, image_path, transform)
 index = Category(image_path,predicted_emotion)
 

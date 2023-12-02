@@ -33,7 +33,8 @@ class myCNNModel_var2(ImageClassificationBase):
         return out
     
 def conv_block(in_channels, out_channels, pool=False):
-    layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+    kernel_size = 5
+    layers = [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=2),
               nn.BatchNorm2d(out_channels),
               nn.ReLU(inplace=True)]
     if pool: layers.append(nn.MaxPool2d(2))

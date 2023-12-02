@@ -11,7 +11,7 @@
     - pip3 install matplotlib
     - pip3 install torch
     - pip3 install torchvision
-    - pip3 install sklearn
+    - pip install scikit-learn
     - pip3 install PIL
     - pip3 install matplotlib
 
