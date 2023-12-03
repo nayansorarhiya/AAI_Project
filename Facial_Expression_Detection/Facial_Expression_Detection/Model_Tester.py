@@ -5,6 +5,7 @@ from torch.utils.data import random_split
 from torchvision import transforms
 from torch.utils.data.dataloader import DataLoader
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+from DataLoadingCSV import CustomDatasetCSV
 from Model import myCNNModel
 from model_var1 import myCNNModel_var1
 from model_var2 import myCNNModel_var2
@@ -63,7 +64,7 @@ def test_evaluate(model,test_loader):
     print("\nAccuracy:", accuracy)
     print("\nClassification Report:")
     print(classification_report_str)
-
+    return accuracy
 
 # transformations for preprocessing images
 transform = transforms.Compose([
@@ -74,25 +75,71 @@ transform = transforms.Compose([
     transforms.RandomHorizontalFlip()
 ])
 
-test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/newData/Test'
-total_dataset = CustomDataset(test_data_root, transform=transform)
+# test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/newData/Test'
+# test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/biasdataset'
+# total_dataset = CustomDataset(test_data_root, transform=transform)
 # total_size = len(total_dataset)
 # test_dataset = random_split(total_dataset,total_size)
-test_loader = DataLoader(total_dataset, batch_size=32, shuffle=False)
 
-device = get_default_device()
-device
+def start_model_test(pd, save_path='trained_model.pth'):
+    
 
-save_path = 'trained_model.pth'    ## Change for Different varient
-# Instantiate the model
-model = myCNNModel(1, 4)
-# model = myCNNModel_var1(1, 4)
-# model = myCNNModel_var2(1, 4)
-model = model.to(device)
+    test_dataset = CustomDatasetCSV(pd, transform=transform) 
 
-test_loader = DeviceDataLoader(DataLoader(total_dataset, 128 * 2), device)
-if cuda.is_available():
-    load_model = model.load_state_dict(torch.load(save_path))
-    model.eval()
-    result = test_evaluate(model, test_loader)
-    result
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+    device = get_default_device()
+    device
+
+        ## Change for Different varient
+    # Instantiate the model
+    model = myCNNModel(1, 4)
+    # model = myCNNModel_var1(1, 4)
+    # model = myCNNModel_var2(1, 4)
+    model = model.to(device)
+
+    test_loader = DeviceDataLoader(DataLoader(test_dataset, 128 * 2), device)
+    if cuda.is_available():
+        load_model = model.load_state_dict(torch.load(save_path))
+        model.eval()
+        current_acc = test_evaluate(model, test_loader)
+        return current_acc
+
+
+def test_model_for_pd(csv_path):
+    import pandas as pd
+    total_data = pd.read_csv(csv_path)
+
+    start_model_test(total_data, save_path='trained_model.pth')
+
+
+if __name__ == "__main__":
+
+    test_dataset_path = "./Facial_Expression_Detection/test_dataset.csv"
+
+    # TEST FOR BIAS BASED ON GENDER
+    female_csv_path = './Facial_Expression_Detection/female_dataset.csv'
+    male_csv_path = './Facial_Expression_Detection/male_dataset.csv'
+
+    # TEST FOR BIAS BASED ON AGE GROUP
+    adult_csv_path = './Facial_Expression_Detection/adult_dataset.csv'
+    child_csv_path = './Facial_Expression_Detection/child_dataset.csv'
+    teen_csv_path = './Facial_Expression_Detection/teen_dataset.csv'
+
+    test_model_for_pd(csv_path=test_dataset_path)
+
+    # START TESTING FOR GENDER
+    print("================   TESTING FOR MALE   ================")
+    test_model_for_pd(csv_path=male_csv_path)
+    print("================   TESTING FOR FEMALE   ================")
+    test_model_for_pd(csv_path=female_csv_path)
+
+    # START TESTING FOR AGE
+    print("================   TESTING FOR CHILD   ================")
+    test_model_for_pd(csv_path=child_csv_path)
+    # START TESTING FOR GENDER
+    print("================   TESTING FOR TEEN   ================")
+    test_model_for_pd(csv_path=teen_csv_path)
+    # START TESTING FOR GENDER
+    print("================   TESTING FOR ADULT   ================")
+    test_model_for_pd(csv_path=adult_csv_path)

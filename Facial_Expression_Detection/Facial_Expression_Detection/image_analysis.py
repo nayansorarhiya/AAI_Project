@@ -11,10 +11,12 @@ from torch.utils.data import Dataset
 from PIL import Image
 import matplotlib.pyplot as plt
 from DataLoading import CustomDataset
+from DataLoadingCSV import CustomDatasetCSV
 from Classification import ImageClassificationBase
 from Model import myCNNModel
 from model_var1 import myCNNModel_var1
 from model_var2 import myCNNModel_var2
+import pandas as pd
 
 # Pick GPU if available, else CPU
 def get_default_device():
@@ -46,7 +48,7 @@ class DeviceDataLoader():
         """Number of batches"""
         return len(self.dl)
     
-def evaluate(model, val_loader):
+def evaluate(model, val_loader, accuracies_list):
     model.eval()
     accuracy = 0
     with torch.no_grad():
@@ -103,9 +105,11 @@ def get_lr(optimizer):
 
 def fit_one_cycle(epochs, max_lr, model, train_loader, val_loader,
                   weight_decay=0, grad_clip=None, opt_func=torch.optim.SGD,
-                  early_stopping_patience=None):
+                  early_stopping_patience=None, save_path='trained_model.pth'):
     torch.cuda.empty_cache()
     history = []
+    accuracies_list = []
+    losses_list = []    
 
     # Set up custom optimizer with weight decay
     optimizer = opt_func(model.parameters(), max_lr, weight_decay=weight_decay)
@@ -151,7 +155,7 @@ def fit_one_cycle(epochs, max_lr, model, train_loader, val_loader,
 
         # Validation phase
         with torch.no_grad():
-            result,accuracy = evaluate(model, val_loader)
+            result,accuracy = evaluate(model, val_loader, accuracies_list)
             current_accuracy = accuracy
         result['train_loss'] = torch.stack(train_losses).mean().item()
         result['lrs'] = lrs
@@ -206,93 +210,112 @@ def plot_losses(history):
     plt.title('Loss vs. Number of Epochs')
     plt.show()
     
+def start_model_training(total_data, save_path = 'trained_model.pth'):
+    # transformations for preprocessing images
+    transform = transforms.Compose([
+        transforms.Resize((48, 48)),
+        transforms.ToTensor(),
+        transforms.RandomCrop(48, 4),
+        transforms.Normalize((0.5), (0.5)),
+        transforms.RandomHorizontalFlip()
+    ])
+    total_list = list(total_data.itertuples(index=False, name=None))
 
 
-# transformations for preprocessing images
-transform = transforms.Compose([
-    transforms.Resize((48, 48)),
-    transforms.ToTensor(),
-    transforms.RandomCrop(48, 4),
-    transforms.Normalize((0.5), (0.5)),
-    transforms.RandomHorizontalFlip()
-])
+    train_size = int(len(total_list)*.85)
+    val_size = len(total_list) - train_size
 
-# Datasets paths
-train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/DB/Train'
-# test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/newData/Test'
+    train_set, val_set = random_split(total_list, [train_size, val_size])
 
-# Training dataset
-total_dataset = CustomDataset(train_data_root, transform=transform)
+    train_dataset = CustomDatasetCSV(pd.DataFrame([total_list[idx] for idx in train_set.indices], columns=['Image_Path', 'Label']), transform=transform) 
+    val_dataset = CustomDatasetCSV(pd.DataFrame([total_list[idx] for idx in val_set.indices], columns=['Image_Path', 'Label']), transform=transform)
 
-total_size = len(total_dataset)
-# print(total_size)
-train_size = int(0.7 * total_size)
-# print(train_size)
-val_size = int(0.15 * total_size)
-# print(val_size)
-test_size = total_size - train_size - val_size
-# print(test_size)
+    # Data loaders
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    # test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+    device = get_default_device()
+    device
+
+    train_dl = DeviceDataLoader(train_loader, device)
+    val_dl = DeviceDataLoader(val_loader, device)
 
 
-train_dataset, val_dataset, test_dataset = random_split(total_dataset, [train_size, val_size, test_size])
-
-# Data loaders
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-device = get_default_device()
-device
-
-train_dl = DeviceDataLoader(train_loader, device)
-val_dl = DeviceDataLoader(val_loader, device)
+    # Running for a Base Model
 
 
-# Running for a Base Model
+    print("Base Model Running")
+    print(" ")
+
+    # Instantiate the model
+
+    model = myCNNModel(1, 4)
+    # model = myCNNModel_var1(1, 4)    ##Extra layer
+    # model = myCNNModel_var2(1, 4)      ## kernal size 5
+    model = model.to(device)
+
+    # torch.save(model.state_dict(), 'trained_model.pth')
+    # history = [evaluate(model, val_dl)]
+    # history
+
+    epochs = 15
+    max_lr = 0.0001
+    grad_clip = 0.1
+    weight_decay = 1e-4
+    opt_func = torch.optim.Adam
+
+    early_stopping_patience = 10
+
+    # %%time
+    history = fit_one_cycle(epochs, max_lr, model, train_dl, val_dl,
+                            grad_clip=grad_clip,
+                            weight_decay=weight_decay,
+                            opt_func=opt_func,
+                            early_stopping_patience=early_stopping_patience,
+                            save_path=save_path)
+    return history
 
 
-print("Base Model Running")
-print(" ")
 
-# Instantiate the model
+if __name__ == "__main__":
 
-save_path = 'trained_model2.pth'    ## Change for Different varient
+    # Datasets paths
+    train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/biasdataset'
+    # train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/DB/Train'
+    # test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/newData/Test'
 
-# model = myCNNModel(1, 4)
-# model = myCNNModel_var1(1, 4)    ##Extra layer
-model = myCNNModel_var2(1, 4)      ## kernal size 5
-model = model.to(device)
-accuracies_list = []
-losses_list = []
 
-# torch.save(model.state_dict(), 'trained_model.pth')
-# history = [evaluate(model, val_dl)]
-# history
 
-epochs = 100
-max_lr = 0.0001
-grad_clip = 0.1
-weight_decay = 1e-4
-opt_func = torch.optim.Adam
 
-early_stopping_patience = 10
+    # # Training dataset
+    # total_dataset = CustomDataset(train_data_root, transform=transform)
 
-# %%time
-history = fit_one_cycle(epochs, max_lr, model, train_dl, val_dl,
-                         grad_clip=grad_clip,
-                         weight_decay=weight_decay,
-                         opt_func=opt_func,
-                         early_stopping_patience=early_stopping_patience)
+    # total_size = len(total_dataset)
+    # # print(total_size)
+    # train_size = int(0.7 * total_size)
+    # # print(train_size)
+    # val_size = int(0.15 * total_size)
+    # # print(val_size)
+    # test_size = total_size - train_size - val_size
+    # # print(test_size)
+
+    train_dataset_path = "./Facial_Expression_Detection/train_dataset.csv"
+    import pandas as pd
+    total_data = pd.read_csv(train_dataset_path)
+    history = start_model_training(total_data)
+    plot_accuracies(history)
+    plot_losses(history)
 
 
 # Testing Saved Model
 
-test_loader = DeviceDataLoader(DataLoader(test_dataset, 128 * 2), device)
-if cuda.is_available():
-    load_model = model.load_state_dict(torch.load(save_path))
-    model.eval()
-    result = test_evaluate(model, test_loader)
-    result
+# test_loader = DeviceDataLoader(DataLoader(test_dataset, 128 * 2), device)
+# if cuda.is_available():
+#     load_model = model.load_state_dict(torch.load(save_path))
+#     model.eval()
+#     result = test_evaluate(model, test_loader)
+#     result
 
 
 
