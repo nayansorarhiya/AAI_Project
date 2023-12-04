@@ -81,7 +81,7 @@ transform = transforms.Compose([
 # total_size = len(total_dataset)
 # test_dataset = random_split(total_dataset,total_size)
 
-def start_model_test(pd, save_path='trained_model.pth'):
+def start_model_test(pd, save_path='Main_model.pth'):
     
 
     test_dataset = CustomDatasetCSV(pd, transform=transform) 
@@ -91,7 +91,7 @@ def start_model_test(pd, save_path='trained_model.pth'):
     device = get_default_device()
     device
 
-        ## Change for Different varient
+    ## Change for Different varient
     # Instantiate the model
     model = myCNNModel(1, 4)
     # model = myCNNModel_var1(1, 4)
@@ -110,7 +110,7 @@ def test_model_for_pd(csv_path):
     import pandas as pd
     total_data = pd.read_csv(csv_path)
 
-    start_model_test(total_data, save_path='trained_model.pth')
+    start_model_test(total_data, save_path='Main_model.pth')
 
 
 if __name__ == "__main__":
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     male_csv_path = './Facial_Expression_Detection/male_dataset.csv'
 
     # TEST FOR BIAS BASED ON AGE GROUP
-    adult_csv_path = './Facial_Expression_Detection/adult_dataset.csv'
+    old_csv_path = './Facial_Expression_Detection/old_dataset.csv'
     child_csv_path = './Facial_Expression_Detection/child_dataset.csv'
     teen_csv_path = './Facial_Expression_Detection/teen_dataset.csv'
 
@@ -141,5 +141,5 @@ if __name__ == "__main__":
     print("================   TESTING FOR TEEN   ================")
     test_model_for_pd(csv_path=teen_csv_path)
     # START TESTING FOR GENDER
-    print("================   TESTING FOR ADULT   ================")
-    test_model_for_pd(csv_path=adult_csv_path)
+    print("================   TESTING FOR Old   ================")
+    test_model_for_pd(csv_path=old_csv_path)

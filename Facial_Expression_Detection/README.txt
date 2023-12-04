@@ -17,17 +17,19 @@
 
 [2] project_directory Structure
 
-├── newData/                     // class_data contains the data set(images) for emotions
-│   ├── Train/                      // 405 images each class
-│   │   ├── Anger
-│   │   ├── Boredom
-│   │   ├── Engagement
-│   │   └── Neutral
-│   └── Test/                       // 150 images each class
-│       ├── Anger
-│       ├── Boredom
-│       ├── Engagement
-│       └── Neutral
+├── BiasTest_dataset_P2/                     // class_data contains the data set(images) for emotions
+│   ├── Male/                     IMAGES 1513 
+│   │     Child,Old,Teen
+|   |      ├── Anger
+|   │      ├── Boredom
+|   │      ├── Engagement
+|   │      └── Neutral
+│   └── Female/                   IMAGES 757
+|          Child,Old,Teen                         
+|           ├── Anger
+|           ├── Boredom
+|           ├── Engagement
+|           └── Neutral
 │
 |
 ├── LabelledData.py            // Takes each class data from train and labels it with meta data and stores the data into image_info.csbv
@@ -45,9 +47,18 @@
 ├── classify_image.py               // test image category by trained model.
 │
 │
-└── image_analysis_var1             // Changed number of con layers.
+├─── image_analysis_var1             // Changed number of con layers.
+│
+├── image_analysis_var2             // Changed kernel size of based version.
+│
 |
-└── image_analysis_var2             // Changed kernel size of based version.
+├── DataLoading.py                  // get image path and label from dataset repository structure 
+|
+├── DataLoadingCSV.py              // Convert dataframe to label and image path 
+│
+├── data_split_generator.py         // creates training and testing csv file for model training
+│
+├── data_bias_generator.py            // creates training and testing csv file for bias checking
 |
 └── README.md
 

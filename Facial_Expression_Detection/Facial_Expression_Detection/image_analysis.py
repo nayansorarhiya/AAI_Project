@@ -2,7 +2,6 @@ import os
 import torch
 from torch.utils.data import random_split
 import torch.nn as nn
-import torch.cuda as cuda
 import torch.nn.functional as F
 from torchvision import transforms
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
@@ -10,7 +9,6 @@ from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import Dataset
 from PIL import Image
 import matplotlib.pyplot as plt
-from DataLoading import CustomDataset
 from DataLoadingCSV import CustomDatasetCSV
 from Classification import ImageClassificationBase
 from Model import myCNNModel
@@ -61,42 +59,13 @@ def evaluate(model, val_loader, accuracies_list):
             correct += (predicted == labels).sum().item()
             accuracy = (correct / total) * 100
             accuracies_list.append(accuracy)
-    print('Test Accuracy of the model on the test images: {} %'.format(accuracy))
+    # print('Test Accuracy of the model on the test images: {} %'.format(accuracy))
 
     outputs1 = [model.validation_step(batch) for batch in val_loader]
     # return true_labels_list,predicted_labels_list
     
     return model.validation_epoch_end(outputs1),accuracy
-
-def test_evaluate(model,test_loader):
-    all_labels = []
-    all_predictions = []
-
-    with torch.no_grad():
-        for inputs, labels in test_loader:
-            outputs = model(inputs)
-            _, predicted = torch.max(outputs, 1)
-            all_labels.extend((labels.cpu().numpy()))
-            all_predictions.extend((predicted.cpu()).numpy())
-
-    # Generate confusion matrix
-    conf_matrix = confusion_matrix(all_labels, all_predictions)
-
-    # Calculate accuracy, precision, recall, and F1-score
-    accuracy = accuracy_score(all_labels, all_predictions)
-    classification_report_str = classification_report(all_labels, all_predictions)
-
-    # Print or log the confusion matrix and performance metrics
-    print("Confusion Matrix:")
-    print(conf_matrix)
-    print("\nAccuracy:", accuracy)
-    print("\nClassification Report:")
-    print(classification_report_str)
-
-    plot_accuracies(history)
-    plot_losses(history)
-
-    
+  
 
 def get_lr(optimizer):
     for param_group in optimizer.param_groups:
@@ -162,10 +131,6 @@ def fit_one_cycle(epochs, max_lr, model, train_loader, val_loader,
         model.epoch_end(epoch, result)
         history.append(result)
         
-        # print(current_accuracy)
-        # print(best_accuracy)
-        # print(result['val_loss'])
-        # print(best_val_loss)
 
         # Early stopping check
         
@@ -210,7 +175,7 @@ def plot_losses(history):
     plt.title('Loss vs. Number of Epochs')
     plt.show()
     
-def start_model_training(total_data, save_path = 'trained_model.pth'):
+def start_model_training(train_data,val_data = None ,save_path = 'trained_model.pth'):
     # transformations for preprocessing images
     transform = transforms.Compose([
         transforms.Resize((48, 48)),
@@ -219,16 +184,22 @@ def start_model_training(total_data, save_path = 'trained_model.pth'):
         transforms.Normalize((0.5), (0.5)),
         transforms.RandomHorizontalFlip()
     ])
-    total_list = list(total_data.itertuples(index=False, name=None))
 
+    if val_data is None:
+        total_list = list(train_data.itertuples(index=False, name=None))
+        train_size = int(len(total_list)*.85)
+        val_size = len(total_list) - train_size
 
-    train_size = int(len(total_list)*.85)
-    val_size = len(total_list) - train_size
+        train_set, val_set = random_split(total_list, [train_size, val_size])
 
-    train_set, val_set = random_split(total_list, [train_size, val_size])
+        train_dataset = CustomDatasetCSV(pd.DataFrame([total_list[idx] for idx in train_set.indices], columns=['Image_Path', 'Label']), transform=transform) 
+        val_dataset = CustomDatasetCSV(pd.DataFrame([total_list[idx] for idx in val_set.indices], columns=['Image_Path', 'Label']), transform=transform)
+    else:
+        train_list = list(train_data.itertuples(index=False, name=None))
+        val_list = list(val_data.itertuples(index=False, name=None))
 
-    train_dataset = CustomDatasetCSV(pd.DataFrame([total_list[idx] for idx in train_set.indices], columns=['Image_Path', 'Label']), transform=transform) 
-    val_dataset = CustomDatasetCSV(pd.DataFrame([total_list[idx] for idx in val_set.indices], columns=['Image_Path', 'Label']), transform=transform)
+        train_dataset = CustomDatasetCSV(pd.DataFrame(train_list, columns=['Image_Path', 'Label']), transform=transform) 
+        val_dataset = CustomDatasetCSV(pd.DataFrame(val_list, columns=['Image_Path', 'Label']), transform=transform)
 
     # Data loaders
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
@@ -244,22 +215,21 @@ def start_model_training(total_data, save_path = 'trained_model.pth'):
 
     # Running for a Base Model
 
-
     print("Base Model Running")
     print(" ")
 
     # Instantiate the model
 
-    model = myCNNModel(1, 4)
+    # model = myCNNModel(1, 4)
     # model = myCNNModel_var1(1, 4)    ##Extra layer
-    # model = myCNNModel_var2(1, 4)      ## kernal size 5
+    model = myCNNModel_var2(1, 4)      ## kernal size 5
     model = model.to(device)
 
-    # torch.save(model.state_dict(), 'trained_model.pth')
+
     # history = [evaluate(model, val_dl)]
     # history
 
-    epochs = 15
+    epochs = 100
     max_lr = 0.0001
     grad_clip = 0.1
     weight_decay = 1e-4
@@ -280,170 +250,11 @@ def start_model_training(total_data, save_path = 'trained_model.pth'):
 
 if __name__ == "__main__":
 
-    # Datasets paths
-    train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/biasdataset'
-    # train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/DB/Train'
-    # test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/newData/Test'
-
-
-
-
-    # # Training dataset
-    # total_dataset = CustomDataset(train_data_root, transform=transform)
-
-    # total_size = len(total_dataset)
-    # # print(total_size)
-    # train_size = int(0.7 * total_size)
-    # # print(train_size)
-    # val_size = int(0.15 * total_size)
-    # # print(val_size)
-    # test_size = total_size - train_size - val_size
-    # # print(test_size)
-
     train_dataset_path = "./Facial_Expression_Detection/train_dataset.csv"
+    validation_dataset_path = "./Facial_Expression_Detection/val_dataset.csv"
     import pandas as pd
-    total_data = pd.read_csv(train_dataset_path)
-    history = start_model_training(total_data)
+    train_data = pd.read_csv(train_dataset_path)
+    val_data = pd.read_csv(validation_dataset_path)
+    history = start_model_training(train_data,val_data,'V2_model.pth')
     plot_accuracies(history)
     plot_losses(history)
-
-
-# Testing Saved Model
-
-# test_loader = DeviceDataLoader(DataLoader(test_dataset, 128 * 2), device)
-# if cuda.is_available():
-#     load_model = model.load_state_dict(torch.load(save_path))
-#     model.eval()
-#     result = test_evaluate(model, test_loader)
-#     result
-
-
-
-# # Running for a Model Variation 1 : (Kernel Size : 5)
-
-
-# print("Variation 1 Model Running")
-# print(" ")
-
-
-# # Instantiate the model
-# model = myCNNModel_var1(1, 4)
-
-# accuracies_list = []
-# losses_list = []
-
-# torch.save(model.state_dict(), 'trained_model.pth')
-# history = [evaluate(model, val_dl)]
-# # history
-
-# epochs = 12
-# max_lr = 0.0001
-# grad_clip = 0.1
-# weight_decay = 1e-4
-# opt_func = torch.optim.Adam
-
-# early_stopping_patience = 10
-
-# # %%time
-# history += fit_one_cycle(epochs, max_lr, model, train_dl, val_dl,
-#                          grad_clip=grad_clip,
-#                          weight_decay=weight_decay,
-#                          opt_func=opt_func,
-#                          early_stopping_patience=early_stopping_patience)
-
-# test_loader = DeviceDataLoader(DataLoader(test_dataset, 128 * 2), device)
-# result = evaluate(model, test_loader)
-# result
-
-# all_labels = []
-# all_predictions = []
-
-# with torch.no_grad():
-#     for inputs, labels in test_loader:
-#         outputs = model(inputs)
-#         _, predicted = torch.max(outputs, 1)
-#         all_labels.extend(labels.numpy())
-#         all_predictions.extend(predicted.numpy())
-
-# # Generate confusion matrix
-# conf_matrix = confusion_matrix(all_labels, all_predictions)
-
-# # Calculate accuracy, precision, recall, and F1-score
-# accuracy = accuracy_score(all_labels, all_predictions)
-# classification_report_str = classification_report(all_labels, all_predictions)
-
-# # Print or log the confusion matrix and performance metrics
-# print("Confusion Matrix:")
-# print(conf_matrix)
-# print("\nAccuracy:", accuracy)
-# print("\nClassification Report:")
-# print(classification_report_str)
-
-# plot_accuracies(history)
-# plot_losses(history)
-
-
-
-# # Running for a Model Variation 2 : (increase a layer)
-
-
-# print("Variation 2 Model Running")
-# print(" ")
-
-
-# # Instantiate the model
-# model = myCNNModel_var2(1, 4, 3)
-
-# accuracies_list = []
-# losses_list = []
-
-# torch.save(model.state_dict(), 'trained_model.pth')
-# history = [evaluate(model, val_dl)]
-# # history
-
-# epochs = 12
-# max_lr = 0.0001
-# grad_clip = 0.1
-# weight_decay = 1e-4
-# opt_func = torch.optim.Adam
-
-# early_stopping_patience = 10
-
-# # %%time
-# history += fit_one_cycle(epochs, max_lr, model, train_dl, val_dl,
-#                          grad_clip=grad_clip,
-#                          weight_decay=weight_decay,
-#                          opt_func=opt_func,
-#                          early_stopping_patience=early_stopping_patience)
-
-# test_loader = DeviceDataLoader(DataLoader(test_dataset, 128 * 2), device)
-# result = evaluate(model, test_loader)
-# result
-
-# all_labels = []
-# all_predictions = []
-
-# with torch.no_grad():
-#     for inputs, labels in test_loader:
-#         outputs = model(inputs)
-#         _, predicted = torch.max(outputs, 1)+
-
-#         all_labels.extend(labels.numpy())
-#         all_predictions.extend(predicted.numpy())
-
-# # Generate confusion matrix
-# conf_matrix = confusion_matrix(all_labels, all_predictions)
-
-# # Calculate accuracy, precision, recall, and F1-score
-# accuracy = accuracy_score(all_labels, all_predictions)
-# classification_report_str = classification_report(all_labels, all_predictions)
-
-# # Print or log the confusion matrix and performance metrics
-# print("Confusion Matrix:")
-# print(conf_matrix)
-# print("\nAccuracy:", accuracy)
-# print("\nClassification Report:")
-# print(classification_report_str)
-
-# plot_accuracies(history)
-# plot_losses(history)
