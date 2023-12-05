@@ -17,7 +17,7 @@
 
 [2] project_directory Structure
 
-├── BiasTest_dataset_P2/                     // class_data contains the data set(images) for emotions
+├── BiasTest_dataset_P2/ Final_dataset                     // class_data contains the data set(images) for emotions
 │   ├── Male/                     IMAGES 1513 
 │   │     Child,Old,Teen
 |   |      ├── Anger
@@ -59,6 +59,10 @@
 ├── data_split_generator.py         // creates training and testing csv file for model training
 │
 ├── data_bias_generator.py            // creates training and testing csv file for bias checking
+│
+├── Model_Tester.py            // Take testing csv file and model and give parameters like precisin, recall ...
+│
+├── kfold_testing.py            // Take all data from directory structure and perform StratifiedKFold on given model
 |
 └── README.md
 
@@ -80,7 +84,10 @@ FOR DATASET CREATION:
 - For Visualization - python EDA.py
 - For Data Extraction - python ExtractData.py
 - For Facial Emotion detection - python Image_analysis.py (based CNN version)
-                               -> image_analysis_var1.py (changed number of con layers)
-                               -> image_analysis_var2.py (changed kernel size)
+            
 - For Train Model - trained_model.pth 
 - For Running Train Model on Dataset or a specific Image - python Application.py
+- For model train CSV data generation - data_split_generator.py - creates train,validation, test csv files 
+- For bias, CSV data generation - data_bias_generator.py - creates Child, Teen, Old, Male and Female csv files 
+- For Testing saved model and bias data testing - Model_Tester.py - saved model test based on input csv file
+- For Evalution of model - kfold_testing.py - saves every fold after training and test model afterwards

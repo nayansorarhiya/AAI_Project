@@ -3,7 +3,6 @@ import cv2
 import pandas as pd
 from PIL import Image
 import matplotlib.pyplot as plt
-import tensorflow as tf
 import scipy
 from scipy import ndimage
 import random

@@ -16,7 +16,8 @@ transform = transforms.Compose([
 ])
 
 # Datasets paths
-train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/BiasTest_DataSet_P2'
+# train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/BiasTest_DataSet_P2'
+train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/Final_dataset'
 
 # Training dataset
 total_dataset = CustomDataset(train_data_root, transform=transform)
@@ -44,9 +45,12 @@ val_df = pd.DataFrame([total_dataset.data[idx] for idx in val_dataset.indices], 
 test_df = pd.DataFrame([total_dataset.data[idx] for idx in test_dataset.indices], columns=['Image_Path', 'Label'])
 
 # Define paths for CSV files
-train_csv_path = './Facial_Expression_Detection/train_dataset.csv'
-val_csv_path = './Facial_Expression_Detection/val_dataset.csv'
-test_csv_path = './Facial_Expression_Detection/test_dataset.csv'
+train_csv_path = './Facial_Expression_Detection/final/train_dataset.csv'
+val_csv_path = './Facial_Expression_Detection/final/val_dataset.csv'
+test_csv_path = './Facial_Expression_Detection/final/test_dataset.csv'
+# train_csv_path = './Facial_Expression_Detection/main/train_dataset.csv'
+# val_csv_path = './Facial_Expression_Detection/main/val_dataset.csv'
+# test_csv_path = './Facial_Expression_Detection/main/test_dataset.csv'
 
 # Save DataFrames to CSV files
 train_df.to_csv(train_csv_path, index=False)

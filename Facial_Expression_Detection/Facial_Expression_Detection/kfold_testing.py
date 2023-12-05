@@ -9,9 +9,8 @@ from image_analysis import start_model_training
 
 
 
-train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/BiasTest_DataSet_P2'
-# train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/DB/Train'
-# test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/newData/Test'
+# train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/BiasTest_DataSet_P2'
+train_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/Final_dataset'
 
 # transformations for preprocessing images
 transform = transforms.Compose([
@@ -42,7 +41,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(X=total_dataset.d
     train_data = [total_dataset.data[i] for i in train_indices]
     test_data = [total_dataset.data[i] for i in test_indices]
 
-    start_model_training(pd.DataFrame(train_data),None,f"trained_model_{fold+1}.pth")
-    total_accuracy += start_model_test(pd.DataFrame(test_data), f"trained_model_{fold+1}.pth")
+    start_model_training(pd.DataFrame(train_data),None,f"./final/trained_model_{fold+1}.pth")
+    total_accuracy += start_model_test(pd.DataFrame(test_data), f"./final/trained_model_{fold+1}.pth")
 
 print("Average Accuracy: ", total_accuracy/k_folds)

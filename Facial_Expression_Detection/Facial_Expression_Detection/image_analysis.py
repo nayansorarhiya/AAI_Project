@@ -220,9 +220,9 @@ def start_model_training(train_data,val_data = None ,save_path = 'trained_model.
 
     # Instantiate the model
 
-    # model = myCNNModel(1, 4)
+    model = myCNNModel(1, 4)
     # model = myCNNModel_var1(1, 4)    ##Extra layer
-    model = myCNNModel_var2(1, 4)      ## kernal size 5
+    # model = myCNNModel_var2(1, 4)      ## kernal size 5
     model = model.to(device)
 
 
@@ -250,11 +250,13 @@ def start_model_training(train_data,val_data = None ,save_path = 'trained_model.
 
 if __name__ == "__main__":
 
-    train_dataset_path = "./Facial_Expression_Detection/train_dataset.csv"
-    validation_dataset_path = "./Facial_Expression_Detection/val_dataset.csv"
+    train_dataset_path = "./Facial_Expression_Detection/final/train_dataset.csv"
+    validation_dataset_path = "./Facial_Expression_Detection/final/val_dataset.csv"
+    # train_dataset_path = "./Facial_Expression_Detection/main/train_dataset.csv"
+    # validation_dataset_path = "./Facial_Expression_Detection/main/val_dataset.csv"
     import pandas as pd
     train_data = pd.read_csv(train_dataset_path)
     val_data = pd.read_csv(validation_dataset_path)
-    history = start_model_training(train_data,val_data,'V2_model.pth')
+    history = start_model_training(train_data,val_data,'Final_model.pth')
     plot_accuracies(history)
     plot_losses(history)

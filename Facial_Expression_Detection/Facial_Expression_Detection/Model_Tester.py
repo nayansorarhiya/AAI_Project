@@ -75,11 +75,6 @@ transform = transforms.Compose([
     transforms.RandomHorizontalFlip()
 ])
 
-# test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/newData/Test'
-# test_data_root = 'S:/concordia/all_terms/fall_2023/AAI/Phase3/AAI_Project/Facial_Expression_Detection/Facial_Expression_Detection/biasdataset'
-# total_dataset = CustomDataset(test_data_root, transform=transform)
-# total_size = len(total_dataset)
-# test_dataset = random_split(total_dataset,total_size)
 
 def start_model_test(pd, save_path='Main_model.pth'):
     
@@ -100,7 +95,7 @@ def start_model_test(pd, save_path='Main_model.pth'):
 
     test_loader = DeviceDataLoader(DataLoader(test_dataset, 128 * 2), device)
     if cuda.is_available():
-        load_model = model.load_state_dict(torch.load(save_path))
+        model.load_state_dict(torch.load(save_path))
         model.eval()
         current_acc = test_evaluate(model, test_loader)
         return current_acc
@@ -110,21 +105,34 @@ def test_model_for_pd(csv_path):
     import pandas as pd
     total_data = pd.read_csv(csv_path)
 
-    start_model_test(total_data, save_path='Main_model.pth')
+    start_model_test(total_data, save_path='Final_model.pth')  # Change
 
 
 if __name__ == "__main__":
 
-    test_dataset_path = "./Facial_Expression_Detection/test_dataset.csv"
+    # Final model test
+    test_dataset_path = "./Facial_Expression_Detection/final/test_dataset.csv"
 
     # TEST FOR BIAS BASED ON GENDER
-    female_csv_path = './Facial_Expression_Detection/female_dataset.csv'
-    male_csv_path = './Facial_Expression_Detection/male_dataset.csv'
+    female_csv_path = './Facial_Expression_Detection/final/female_dataset.csv'
+    male_csv_path = './Facial_Expression_Detection/final/male_dataset.csv'
 
     # TEST FOR BIAS BASED ON AGE GROUP
-    old_csv_path = './Facial_Expression_Detection/old_dataset.csv'
-    child_csv_path = './Facial_Expression_Detection/child_dataset.csv'
-    teen_csv_path = './Facial_Expression_Detection/teen_dataset.csv'
+    old_csv_path = './Facial_Expression_Detection/final/old_dataset.csv'
+    child_csv_path = './Facial_Expression_Detection/final/child_dataset.csv'
+    teen_csv_path = './Facial_Expression_Detection/final/teen_dataset.csv'
+
+    # Main model test
+    # test_dataset_path = "./Facial_Expression_Detection/main/test_dataset.csv"
+
+    # # TEST FOR BIAS BASED ON GENDER
+    # female_csv_path = './Facial_Expression_Detection/main/female_dataset.csv'
+    # male_csv_path = './Facial_Expression_Detection/main/male_dataset.csv'
+
+    # # TEST FOR BIAS BASED ON AGE GROUP
+    # old_csv_path = './Facial_Expression_Detection/main/old_dataset.csv'
+    # child_csv_path = './Facial_Expression_Detection/main/child_dataset.csv'
+    # teen_csv_path = './Facial_Expression_Detection/main/teen_dataset.csv'
 
     test_model_for_pd(csv_path=test_dataset_path)
 
