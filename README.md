@@ -1,6 +1,6 @@
 # AAI_Project
-
-1. File Enumeration and Descriptions:
+## Phase1 
+### 1. File Enumeration and Descriptions:
 
 In our Project we have many files which are important and listed below.
 
@@ -17,7 +17,7 @@ In our Project we have many files which are important and listed below.
     [6] def plotRandom() - This method is used to plot 25 random images in 5 * 5 grid.
 
 
-2. Data Cleaning (a):
+### 2. Data Cleaning:
 
 • Environment Setup:
   - Ensure you have Python 3.11 or higher installed.
@@ -29,10 +29,11 @@ In our Project we have many files which are important and listed below.
      tensorflow
      scipy
      numpy )
+    
 • Data Cleaning and processing:
   - Data Cleaning is done by one time code execution of data cleaning and processing code provided in EDA.py file and in our generated CSV file we found no missing data.
 
-3. Data Visualization:
+### 3. Data Visualization:
    - EDA.py contains all the relative coding for EDA which mainly includes Class ditsribution trough plotting various graphs , label cheking for random images , pixel intensity distrubution graph for random images. Generated graphs are provided in the report.
    - Here visulization of data is done by using some libraries like Matplotlib , tensorflow , pillow , etc.
 
